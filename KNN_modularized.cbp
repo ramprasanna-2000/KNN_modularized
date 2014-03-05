@@ -182,6 +182,7 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="include/KNN_Tester.h" />
 		<Unit filename="include/KNN_Trainer.h" />
 		<Unit filename="main.cpp" />
 		<Extensions>

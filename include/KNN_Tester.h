@@ -1,18 +1,18 @@
-#ifndef KNN_TRAINER_H
-#define KNN_TRAINER_H
+#ifndef KNN_TESTER_H
+#define KNN_TESTER_H
 
 /*
 *
-*	<--- DIRECTORY STRUCTURE EXPECTED FOR TRAINER --->
+*	<--- DIRECTORY STRUCTURE EXPECTED FOR TESTER --->
 *
 * --/
 *	 --/RAW_DATA/
-*				--/TRAIN
+*				--/TESTING
 *						 --/0 					//ABSENT - SAMPLE DATA
 *						 --/1 					//PRESENT - SAMPLE DATA
 *						 --/2 					//Blank - SAMPLE DATA
 *
-*	<--- DIRECTORY STRUCTURE EXPECTED FOR TRAINER --->
+*	<--- DIRECTORY STRUCTURE EXPECTED FOR TESTER --->
 */
 
 #include "opencv2/opencv.hpp"
@@ -26,36 +26,29 @@ using namespace cv;
 //Number of classifications (Real Number - should start from 1)
 #define TOTAL_CLASSES 2
 
-
-
-class KNN_Trainer {
+class KNN_Tester {
 
 private:
 
 	Mat _samples;			// For storing samples
 	Mat _labels;			// For storing labels
-	Mat sample_labels;		// For storing sample's label
+	KNearest knn;
 
 	int TOTAL_SAMPLES;
 
-
-	// Train the KNN classifier
-	void train_classifier( string  PATH_TO_TRAINING_DATA , int NUMBER_OF_FILES);
-
 	// Test the KNN classifier
-	//void test_classifier( string  PATH_TO_TESTING_DATA , int NUMBER_OF_FILES);
+	void test_classifier( string  PATH_TO_TESTING_DATA , int NUMBER_OF_FILES);
 
 	// Serialize (save) the training to file.
-	void serialize_training();
+	void deserialize_training();
 
 public:
 
-	KNN_Trainer(string  PATH_TO_TRAINING_DATA,/* string PATH_TO_TESTING_DATA,*/  int TOTAL_SAMPLES) {
+	KNN_Tester(string PATH_TO_TESTING_DATA, int TOTAL_SAMPLES) {
 
-		train_classifier(PATH_TO_TRAINING_DATA, TOTAL_SAMPLES);
+        deserialize_training();
 
-		//test_classifier(//RAW_DATA//TESTING//);
-		serialize_training();
+		test_classifier(PATH_TO_TESTING_DATA ,  TOTAL_SAMPLES);
 
 		cvWaitKey(0);
 	}
@@ -75,11 +68,35 @@ public:
 };
 
 
+
 /********************************************************************
-*							TRAIN_CLASSIFIER
+*							READ_TRAINING
+*
+********************************************************************/
+
+// This function reads the training data, into the KNN trainer
+void KNN_Tester::deserialize_training() {
+
+    // Read stored sample and label for training
+
+    FileStorage Data("TrainingData.yml",FileStorage::READ); // Read traing data to a Mat
+    Data["data"] >> _samples;
+    Data.release();
+
+    FileStorage Label("LabelData.yml",FileStorage::READ); // Read label data to a Mat
+    Label["label"] >> _labels;
+    Label.release();
+
+    knn.train(_samples,_labels); // Train with sample and responses
+    cout<<"Training compleated.....!!"<<endl;
+}
+
+
+/********************************************************************
+*							TEST_CLASSIFIER
 *
 *	Input Arguments:
-*		string_to_training_data  : [string] String to training data
+*		string_to_test_data  : [string] String to test data
 *		TOTAL_SAMPLES_in_dir : [int] Number of files in directory
 *
 *
@@ -87,7 +104,7 @@ public:
 *
 * <-- Also, there should be equal number of files, in each class -->
 *
-*	--/TRAIN
+*	--/TEST
 *			--/0
 *			  	--/IMG (0).png
 *			  	--/IMG (1).png
@@ -99,8 +116,8 @@ public:
 *
 *********************************************************************/
 
-// Train the KNN classifier
-void KNN_Trainer::train_classifier( string string_to_training_data,
+// Test the KNN classifier
+void KNN_Tester::test_classifier( string string_to_training_data,
 					int TOTAL_SAMPLES_in_dir ) {
 
 	// Mat for storing a single sample
@@ -114,6 +131,15 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
 
     char stackBuffer[512];
 
+
+    //testing stuff
+        //count of correct classifications
+        int correct_class[TOTAL_CLASSES] = {};
+
+        //count of wrong classifications
+        int wrong_class[TOTAL_CLASSES] = {};
+    //testing stuff
+
 	for(int CURR_CLASS=0; CURR_CLASS<TOTAL_CLASSES; CURR_CLASS++) {
 
 		for(int CURR_SAMPLE=0; CURR_SAMPLE<TOTAL_SAMPLES_in_dir; CURR_SAMPLE++) {
@@ -123,14 +149,16 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
 
 			string filename = "IMG ("+ convertIntToString(CURR_SAMPLE+1) + ").png";
 #if DEBUG
-            cout << "current dir asdfasd"  << getcwd(stackBuffer, sizeof(stackBuffer)) << endl;
+            cout << "current dir is "  << getcwd(stackBuffer, sizeof(stackBuffer)) << endl;
 			cout << filename << endl;
 #endif // DEBUG
 
 			// Read each sample
 			sample = imread(filename, 0);
-            //threshold(sample,sample,200,255,THRESH_BINARY_INV); //Threshold to find contour
+            //threshold(sample,sample,200,255,THRESH_BINARY_INV);
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
+
+            /* TODO TRY CATCH FOR -> IF NOT ABLE TO READ FILE THEN THROW EXCEPTION - HALT*/
 
 			// Resize sample to 10,10
 			resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );
@@ -138,11 +166,17 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
 			// Convert to float - flatten the multidim to single dim (single chan)
 			sample.convertTo(sample_flattened, CV_32FC1);
 
-			// Store sample (continuous) data
-			_samples.push_back(sample_flattened.reshape(1,1));
+			float p=knn.find_nearest(sample_flattened.reshape(1,1), 1);
 
-			// Store label to a mat
-			sample_labels.push_back(CURR_CLASS);
+
+            // if sample is NOT classified correctly
+            if (p != CURR_CLASS) {
+
+                wrong_class[CURR_CLASS]++;
+            } else {
+
+                correct_class[CURR_CLASS]++;
+            }
 
 		}
 
@@ -153,56 +187,12 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
     // Go up 2 file directories
 	chdir("../..");
 
-    // Store the data to file
-    Mat sample_labels_temp;
+    //testing %
+    for(int CURR_CLASS=0; CURR_CLASS<TOTAL_CLASSES; CURR_CLASS++) {
+        cout << "Correct classification for " << CURR_CLASS << " is ";
+        cout <<  correct_class[CURR_CLASS]*100/TOTAL_SAMPLES_in_dir << "%" <<  endl;
 
-	//make continuous
-    sample_labels_temp = sample_labels.reshape(1,1);
-
-	// Convert  to float and store in _labels
-    sample_labels_temp.convertTo(_labels,CV_32FC1);
-
+    }
 }
 
-
-/********************************************************************
-*							SERIALIZE_TRAINING
-*
-********************************************************************/
-
-// This function serializes (writes to file) the training data.
-void KNN_Trainer::serialize_training() {
-
-	// Store the sample data in a file
-    FileStorage Data("TrainingData.yml",FileStorage::WRITE);
-    Data << "data" << _samples;
-    Data.release();
-
-	// Store the label data in a file
-    FileStorage Label("LabelData.yml",FileStorage::WRITE);
-    Label << "label" << _labels;
-    Label.release();
-
-    cout << "Training and Label data serialized successfully.... " << endl;
-
-}
-
-
-// EXTRA
-/********************************************************************
-
-from line 25
-something like
-	crop the segment to only the boundary
-		then parse it to the ROI thing.
-
-		[todo]
-		label according to folder name currently in (of the for loop)
-
-
-examine the MLP trainer
-	see how the iteration thing takes place for that.
-
-********************************************************************/
-
-#endif // KNN_TRAINER_H
+#endif // KNN_TESTER_H

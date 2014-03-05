@@ -1,9 +1,10 @@
 # depslib dependency file v1.0
-1393937874 source:c:\development\opencv-development\knn_modularized\main.cpp
+1394060837 source:c:\development\opencv-development\knn_modularized\main.cpp
 	<iostream>
 	"KNN_Trainer.h"
+	"KNN_Tester.h"
 
-1393939072 c:\development\opencv-development\knn_modularized\include\knn_trainer.h
+1394060952 c:\development\opencv-development\knn_modularized\include\knn_trainer.h
 	"opencv2/opencv.hpp"
 	"opencv2/highgui/highgui.hpp"
 	"opencv2/imgproc/imgproc.hpp"
@@ -160,4 +161,10 @@
 	<map>
 	<set>
 	<valarray>
+
+1394060950 c:\development\opencv-development\knn_modularized\include\knn_tester.h
+	"opencv2/opencv.hpp"
+	"opencv2/highgui/highgui.hpp"
+	"opencv2/imgproc/imgproc.hpp"
+	"unistd.h"
 

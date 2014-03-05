@@ -1,10 +1,11 @@
 #include <iostream>
 #include "KNN_Trainer.h"
+#include "KNN_Tester.h"
 
 int main() {
 
-    KNN_Trainer test_knn_obj("/RAW_DATA/TRAIN", 3);
-    cout << test_knn_obj.sayHello() << endl;
+    KNN_Trainer train_knn_obj("RAW_DATA/TRAIN/", 141);
+    KNN_Tester test_knn_obj("RAW_DATA/TEST/", 141);
 
 
     return 0;
