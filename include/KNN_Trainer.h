@@ -1,7 +1,7 @@
 #ifndef KNN_TRAINER_H
 #define KNN_TRAINER_H
 
-/*
+/**********************************************************************
 *
 *	<--- DIRECTORY STRUCTURE EXPECTED FOR TRAINER --->
 *
@@ -10,10 +10,10 @@
 *				--/TRAIN
 *						 --/0 					//ABSENT - SAMPLE DATA
 *						 --/1 					//PRESENT - SAMPLE DATA
-*						 --/2 					//Blank - SAMPLE DATA
+*						 --/2 					//Blank? - SAMPLE DATA
 *
 *	<--- DIRECTORY STRUCTURE EXPECTED FOR TRAINER --->
-*/
+***********************************************************************/
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -22,11 +22,6 @@
 
 using namespace std;
 using namespace cv;
-
-//Number of classifications (Real Number - should start from 1)
-#define TOTAL_CLASSES 2
-
-
 
 class KNN_Trainer {
 
@@ -37,24 +32,21 @@ private:
 	Mat sample_labels;		// For storing sample's label
 
 	int TOTAL_SAMPLES;
+	int TOTAL_CLASSES;
 
 
 	// Train the KNN classifier
-	void train_classifier( string  PATH_TO_TRAINING_DATA , int NUMBER_OF_FILES);
-
-	// Test the KNN classifier
-	//void test_classifier( string  PATH_TO_TESTING_DATA , int NUMBER_OF_FILES);
+	void train_classifier( string  PATH_TO_TRAINING_DATA);
 
 	// Serialize (save) the training to file.
 	void serialize_training();
 
 public:
 
-	KNN_Trainer(string  PATH_TO_TRAINING_DATA,/* string PATH_TO_TESTING_DATA,*/  int TOTAL_SAMPLES) {
+	KNN_Trainer(string  PATH_TO_TRAINING_DATA, int total_samples, int total_classes) : TOTAL_SAMPLES(total_samples),  TOTAL_CLASSES(total_classes) {
 
-		train_classifier(PATH_TO_TRAINING_DATA, TOTAL_SAMPLES);
+		train_classifier(PATH_TO_TRAINING_DATA);
 
-		//test_classifier(//RAW_DATA//TESTING//);
 		serialize_training();
 
 		cvWaitKey(0);
@@ -100,8 +92,7 @@ public:
 *********************************************************************/
 
 // Train the KNN classifier
-void KNN_Trainer::train_classifier( string string_to_training_data,
-					int TOTAL_SAMPLES_in_dir ) {
+void KNN_Trainer::train_classifier( string string_to_training_data) {
 
 	// Mat for storing a single sample
 	Mat sample;
@@ -116,7 +107,7 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
 
 	for(int CURR_CLASS=0; CURR_CLASS<TOTAL_CLASSES; CURR_CLASS++) {
 
-		for(int CURR_SAMPLE=0; CURR_SAMPLE<TOTAL_SAMPLES_in_dir; CURR_SAMPLE++) {
+		for(int CURR_SAMPLE=0; CURR_SAMPLE<TOTAL_SAMPLES; CURR_SAMPLE++) {
 
             chdir( (convertIntToString(CURR_CLASS)).c_str());
 
@@ -132,7 +123,7 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
             //threshold(sample,sample,200,255,THRESH_BINARY_INV); //Threshold to find contour
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
-			// Resize sample to 10,10
+			// Resize sample to 32,32
 			resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );
 
 			// Convert to float - flatten the multidim to single dim (single chan)
@@ -166,7 +157,7 @@ void KNN_Trainer::train_classifier( string string_to_training_data,
 
 
 /********************************************************************
-*							SERIALIZE_TRAINING
+*						SERIALIZE_TRAINING
 *
 ********************************************************************/
 

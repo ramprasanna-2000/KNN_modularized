@@ -1,7 +1,7 @@
 #ifndef KNN_TESTER_H
 #define KNN_TESTER_H
 
-/*
+/**********************************************************************
 *
 *	<--- DIRECTORY STRUCTURE EXPECTED FOR TESTER --->
 *
@@ -13,7 +13,7 @@
 *						 --/2 					//Blank - SAMPLE DATA
 *
 *	<--- DIRECTORY STRUCTURE EXPECTED FOR TESTER --->
-*/
+***********************************************************************/
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -23,7 +23,6 @@
 using namespace std;
 using namespace cv;
 
-//Number of classifications (Real Number - should start from 1)
 #define TOTAL_CLASSES 2
 
 class KNN_Tester {
@@ -37,18 +36,18 @@ private:
 	int TOTAL_SAMPLES;
 
 	// Test the KNN classifier
-	void test_classifier( string  PATH_TO_TESTING_DATA , int NUMBER_OF_FILES);
+	void test_classifier( string  PATH_TO_TESTING_DATA );
 
 	// Serialize (save) the training to file.
 	void deserialize_training();
 
 public:
 
-	KNN_Tester(string PATH_TO_TESTING_DATA, int TOTAL_SAMPLES) {
+	KNN_Tester(string PATH_TO_TESTING_DATA, int total_samples) : TOTAL_SAMPLES(total_samples) {
 
         deserialize_training();
 
-		test_classifier(PATH_TO_TESTING_DATA ,  TOTAL_SAMPLES);
+		test_classifier(PATH_TO_TESTING_DATA );
 
 		cvWaitKey(0);
 	}
@@ -117,8 +116,7 @@ void KNN_Tester::deserialize_training() {
 *********************************************************************/
 
 // Test the KNN classifier
-void KNN_Tester::test_classifier( string string_to_training_data,
-					int TOTAL_SAMPLES_in_dir ) {
+void KNN_Tester::test_classifier( string string_to_training_data) {
 
 	// Mat for storing a single sample
 	Mat sample;
@@ -131,7 +129,6 @@ void KNN_Tester::test_classifier( string string_to_training_data,
 
     char stackBuffer[512];
 
-
     //testing stuff
         //count of correct classifications
         int correct_class[TOTAL_CLASSES] = {};
@@ -142,7 +139,7 @@ void KNN_Tester::test_classifier( string string_to_training_data,
 
 	for(int CURR_CLASS=0; CURR_CLASS<TOTAL_CLASSES; CURR_CLASS++) {
 
-		for(int CURR_SAMPLE=0; CURR_SAMPLE<TOTAL_SAMPLES_in_dir; CURR_SAMPLE++) {
+		for(int CURR_SAMPLE=0; CURR_SAMPLE<TOTAL_SAMPLES; CURR_SAMPLE++) {
 
             chdir( (convertIntToString(CURR_CLASS)).c_str());
 
@@ -160,7 +157,7 @@ void KNN_Tester::test_classifier( string string_to_training_data,
 
             /* TODO TRY CATCH FOR -> IF NOT ABLE TO READ FILE THEN THROW EXCEPTION - HALT*/
 
-			// Resize sample to 10,10
+			// Resize sample to 32,32
 			resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );
 
 			// Convert to float - flatten the multidim to single dim (single chan)
@@ -190,7 +187,7 @@ void KNN_Tester::test_classifier( string string_to_training_data,
     //testing %
     for(int CURR_CLASS=0; CURR_CLASS<TOTAL_CLASSES; CURR_CLASS++) {
         cout << "Correct classification for " << CURR_CLASS << " is ";
-        cout <<  correct_class[CURR_CLASS]*100/TOTAL_SAMPLES_in_dir << "%" <<  endl;
+        cout <<  correct_class[CURR_CLASS]*100/TOTAL_SAMPLES << "%" <<  endl;
 
     }
 }
