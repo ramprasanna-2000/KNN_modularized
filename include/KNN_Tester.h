@@ -23,6 +23,8 @@
 using namespace std;
 using namespace cv;
 
+
+
 class KNN_Tester {
 
 private:
@@ -39,6 +41,10 @@ private:
 
     // Serialize (save) the training to file.
     void deserialize_training();
+
+//EEEEEXTRA
+Mat getCroppedContour(Mat& segment);
+//EEEEEXTRA
 
 public:
 
@@ -65,6 +71,43 @@ public:
 
 };
 
+/*******************************************************************/
+//-----------------TO REFACTOR-------------
+
+Mat KNN_Tester::getCroppedContour(Mat& segment) {
+    vector< vector <Point> > contours; // Vector for storing contour
+    vector< Vec4i > hierarchy;
+    Mat croppedContour;
+    Mat seg_copy = segment.clone(); //to prevent decomposition
+    GaussianBlur(segment, segment, Size(5,5), 0, 0);
+
+
+    findContours( segment, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
+//	for( unsigned int i = 0; i< contours.size(); i=hierarchy[i][0] ) {
+//	// iterate through each contour for first hierarchy level.
+//			if(contourArea(contours[i]) < 100)
+//				continue;
+//
+//		Rect r= boundingRect(contours[i]);
+//		croppedContour = seg_copy(r);
+//	}
+
+    //sort the corners with a custom comparator
+    sort(contours.begin(), contours.end(), compareContourAreas);
+
+
+    // largest contour
+    vector<Point> pt_largest;
+
+    //take largest contour
+    pt_largest = contours[contours.size()-1];
+
+    Rect r= boundingRect(pt_largest);
+    croppedContour = seg_copy(r);
+
+    return croppedContour;
+}
+//-----------------TO REFACTOR-------------
 
 
 /********************************************************************
@@ -86,7 +129,7 @@ void KNN_Tester::deserialize_training() {
     Label.release();
 
     knn.train(_samples,_labels); // Train with sample and responses
-    cout<<"Training compleated.....!!"<<endl;
+    cout<<"Training completed.....!!"<<endl;
 }
 
 
@@ -153,6 +196,8 @@ void KNN_Tester::test_classifier( string string_to_training_data) {
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
             /* TODO TRY CATCH FOR -> IF NOT ABLE TO READ FILE THEN THROW EXCEPTION - HALT*/
+
+sample = getCroppedContour(sample);
 
             // Resize sample to 32,32
             resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );
