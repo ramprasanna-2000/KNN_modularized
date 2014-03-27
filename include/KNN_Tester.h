@@ -42,9 +42,9 @@ private:
     // Serialize (save) the training to file.
     void deserialize_training();
 
-//EEEEEXTRA
-Mat getCroppedContour(Mat& segment);
-//EEEEEXTRA
+	// Get cropped Contour (only the contour, not extra whitespace)
+	Mat getCroppedContour(Mat& segment);
+
 
 public:
 
@@ -55,11 +55,6 @@ public:
         test_classifier(PATH_TO_TESTING_DATA);
 
         cvWaitKey(0);
-    }
-
-    // Test if class works
-    string sayHello() {
-        return "hello";
     }
 
     // Convert (input) integer to String (using stringstream)
@@ -81,7 +76,6 @@ Mat KNN_Tester::getCroppedContour(Mat& segment) {
     Mat seg_copy = segment.clone(); //to prevent decomposition
     GaussianBlur(segment, segment, Size(5,5), 0, 0);
 
-
     findContours( segment, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
 //	for( unsigned int i = 0; i< contours.size(); i=hierarchy[i][0] ) {
 //	// iterate through each contour for first hierarchy level.
@@ -94,7 +88,6 @@ Mat KNN_Tester::getCroppedContour(Mat& segment) {
 
     //sort the corners with a custom comparator
     sort(contours.begin(), contours.end(), compareContourAreas);
-
 
     // largest contour
     vector<Point> pt_largest;
@@ -196,8 +189,8 @@ void KNN_Tester::test_classifier( string string_to_training_data) {
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
             /* TODO TRY CATCH FOR -> IF NOT ABLE TO READ FILE THEN THROW EXCEPTION - HALT*/
-
-sample = getCroppedContour(sample);
+			// Get cropped contour
+            sample = getCroppedContour(sample);
 
             // Resize sample to 32,32
             resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );

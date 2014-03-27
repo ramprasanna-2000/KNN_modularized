@@ -51,9 +51,9 @@ private:
     // Serialize (save) the training to file.
     void serialize_training();
 
-//EEEEEXTRA
-Mat getCroppedContour(Mat& segment);
-//EEEEEXTRA
+	// Get cropped Contour (only the contour, not extra whitespace)
+	Mat getCroppedContour(Mat& segment);
+
 
 public:
 
@@ -66,11 +66,6 @@ public:
         cvWaitKey(0);
     }
 
-    // Test if class works
-    string sayHello() {
-        return "hello";
-    }
-
     // Convert (input) integer to String (using stringstream)
     string convertIntToString(int number) {
         stringstream ss;			//create a stringstream
@@ -81,7 +76,6 @@ public:
 };
 
 /*******************************************************************/
-//-----------------TO REFACTOR-------------
 
 Mat KNN_Trainer::getCroppedContour(Mat& segment) {
     vector< vector <Point> > contours; // Vector for storing contour
@@ -90,20 +84,10 @@ Mat KNN_Trainer::getCroppedContour(Mat& segment) {
     Mat seg_copy = segment.clone(); //to prevent decomposition
     GaussianBlur(segment, segment, Size(5,5), 0, 0);
 
-
     findContours( segment, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
-//	for( unsigned int i = 0; i< contours.size(); i=hierarchy[i][0] ) {
-//	// iterate through each contour for first hierarchy level.
-//			if(contourArea(contours[i]) < 100)
-//				continue;
-//
-//		Rect r= boundingRect(contours[i]);
-//		croppedContour = seg_copy(r);
-//	}
 
     //sort the corners with a custom comparator
     sort(contours.begin(), contours.end(), compareContourAreas);
-
 
     // largest contour
     vector<Point> pt_largest;
@@ -116,7 +100,6 @@ Mat KNN_Trainer::getCroppedContour(Mat& segment) {
 
     return croppedContour;
 }
-//-----------------TO REFACTOR-------------
 
 /********************************************************************
 *							TRAIN_CLASSIFIER
@@ -145,6 +128,7 @@ Mat KNN_Trainer::getCroppedContour(Mat& segment) {
 // Train the KNN classifier
 void KNN_Trainer::train_classifier( string string_to_training_data) {
 
+    try {
     // Mat for storing a single sample
     Mat sample;
 
@@ -174,8 +158,8 @@ void KNN_Trainer::train_classifier( string string_to_training_data) {
             //threshold(sample,sample,200,255,THRESH_BINARY_INV); //Threshold to find contour
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
-sample = getCroppedContour(sample);
-//imwrite(filename+"a.png", sample);
+			sample = getCroppedContour(sample);
+			//imwrite(filename+"a.png", sample);
 
             // Resize sample to 32,32
             resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );
@@ -206,6 +190,11 @@ sample = getCroppedContour(sample);
 
     // Convert  to float and store in _labels
     sample_labels_temp.convertTo(_labels,CV_32FC1);
+    }
+
+    catch(...) {
+        cout << "Something unusual went wrong while training " << endl;
+    }
 
 }
 
