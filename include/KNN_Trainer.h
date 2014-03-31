@@ -159,7 +159,7 @@ void KNN_Trainer::train_classifier( string string_to_training_data) {
             cv::threshold(sample, sample, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU);
 
 			sample = getCroppedContour(sample);
-			//imwrite(filename+"a.png", sample);
+			//imwrite("a.png"+filename, sample);
 
             // Resize sample to 32,32
             resize(sample, sample, Size(32,32), 0, 0, INTER_CUBIC );

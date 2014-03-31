@@ -4,8 +4,8 @@
 
 int main() {
 
-    KNN_Trainer train_knn_obj("RAW_DATA/TRAIN/", 134, 2);
-    KNN_Tester test_knn_obj("RAW_DATA/TEST/", 170, 2);
+    KNN_Trainer train_knn_obj("RAW_DATA/TRAIN/", 141, 2);
+    KNN_Tester test_knn_obj("RAW_DATA/TEST/", 141, 2);
 
     return 0;
 }

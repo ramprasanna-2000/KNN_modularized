@@ -53,8 +53,6 @@ public:
         deserialize_training();
 
         test_classifier(PATH_TO_TESTING_DATA);
-
-        cvWaitKey(0);
     }
 
     // Convert (input) integer to String (using stringstream)
